@@ -1,4 +1,4 @@
-import { Coin } from "@/store/slices/coinsSlice";
+
 import {
 	Avatar,
 	Box,
@@ -9,9 +9,8 @@ import {
 } from "@mui/material";
 import React, { memo } from "react";
 
-interface DashboardTableRowProps {
-	coin: Coin;
-}
+import { DashboardTableRowProps } from "@/constants/interface";
+import { Coin } from "@/constants/interface";
 
 const DashboardTableRow = memo((props: DashboardTableRowProps) => {
 	const positive = props.coin.price_change_percentage_24h >= 0;

@@ -1,9 +1,8 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Paper,
   Card,
   CardContent,
   TextField,
@@ -21,58 +20,72 @@ import {
 import { Add as AddIcon, Edit as EditIcon } from '@mui/icons-material';
 import PortfolioChart from './components/PortfolioChart';
 import PortfolioSummary from './components/PortfolioSummary';
+import AddCoinDialog from './components/AddCoinDialog';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
   addCoinToPortfolio,
   updateCoinAmount,
   removeCoinFromPortfolio,
   selectPortfolio,
+  fetchPortfolioPerformance,
 } from '@/store/slices/portfolioSlice';
-
-// Dummy placeholder data
-const initialPortfolioHoldings = [
-  {
-    id: 'bitcoin',
-    name: 'Bitcoin',
-    symbol: 'BTC',
-    image: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png',
-    amount: 0.5,
-    currentPrice: 26000,
-    priceChange24h: 2.53,
-    totalValue: 13000,
-  },
-  {
-    id: 'ethereum',
-    name: 'Ethereum',
-    symbol: 'ETH',
-    image: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
-    amount: 2.3,
-    currentPrice: 1600,
-    priceChange24h: -1.23,
-    totalValue: 3680,
-  },
-  {
-    id: 'cardano',
-    name: 'Cardano',
-    symbol: 'ADA',
-    image: 'https://cryptologos.cc/logos/cardano-ada-logo.png',
-    amount: 1000,
-    currentPrice: 0.25,
-    priceChange24h: 0.78,
-    totalValue: 250,
-  },
-];
+import { selectAllCoins, fetchCoins } from '@/store/slices/coinsSlice';
 
 function PortfolioPage() {
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [editAmount, setEditAmount] = React.useState<string>('');
+  const [addDialogOpen, setAddDialogOpen] = React.useState(false);
+  const [selectedCoinName, setSelectedCoinName] = useState<string | null>(null);
+  const [chartData, setChartData] = useState<{ prices: { x: Date; y: number }[] } | null>(null);
 
   const portfolio = useAppSelector(selectPortfolio);
+  const coins = useAppSelector(selectAllCoins);
   const dispatch = useAppDispatch();
 
+  // Fetch coins on component mount
   React.useEffect(() => {
-    // TODO: Initialize portfolio with dummy data
-  }, []);
+    dispatch(fetchCoins({ perPage: 250 }));
+  }, [dispatch]);
+
+  // Build portfolio holdings with live coin data
+  const portfolioArray = Object.values(portfolio)
+    .map((holding) => {
+      const coin = coins.find((c) => c.id === holding.id);
+      if (!coin) return null;
+      const totalValue = holding.amount * coin.current_price;
+      return {
+        id: coin.id,
+        name: coin.name,
+        symbol: coin.symbol,
+        image: coin.image,
+        amount: holding.amount,
+        currentPrice: coin.current_price,
+        priceChange24h: coin.price_change_percentage_24h,
+        totalValue,
+      };
+    })
+    .filter((holding): holding is NonNullable<typeof holding> => holding !== null);
+
+  // Portfolio summary calculations
+  const totalPortfolioValue = portfolioArray.reduce(
+    (sum, h) => sum + h.totalValue,
+    0
+  );
+  // Weighted average 24h change
+  const totalValueYesterday = portfolioArray.reduce(
+    (sum, h) => sum + h.totalValue / (1 + h.priceChange24h / 100),
+    0
+  );
+  const portfolioChangePercent = totalValueYesterday > 0
+    ? ((totalPortfolioValue - totalValueYesterday) / totalValueYesterday) * 100
+    : 0;
+  const portfolioChangeValue = totalPortfolioValue - totalValueYesterday;
+  // Best performer
+  const bestPerformer = portfolioArray.length > 0
+    ? portfolioArray.reduce((best, h) =>
+      !best || h.priceChange24h > best.priceChange24h ? h : best
+    )
+    : null;
 
   const handleEditClick = (id: string, currentAmount: number) => {
     setEditingId(id);
@@ -82,10 +95,7 @@ function PortfolioPage() {
   const handleSaveEdit = () => {
     const amount = parseFloat(editAmount);
     if (isNaN(amount) || amount <= 0) return;
-
-    // Update portfolio holding amount
     dispatch(updateCoinAmount({ id: editingId!, amount }));
-
     setEditingId(null);
     setEditAmount('');
   };
@@ -99,13 +109,22 @@ function PortfolioPage() {
     dispatch(addCoinToPortfolio({ id, amount }));
   };
 
-  const handleRemoveCoin = (id: string) => {
-    dispatch(removeCoinFromPortfolio(id));
+  const handleOpenAddDialog = () => {
+    setAddDialogOpen(true);
   };
 
+  const handleCloseAddDialog = () => {
+    setAddDialogOpen(false);
+  };
 
-  const portfolioArray = Object.values(portfolio) as typeof initialPortfolioHoldings;
-  console.log('portfolioArray', portfolioArray);
+  const handleRowClick = async (coinId: string, coinName: string) => {
+    // setSelectedCoinId(coinId);
+    setSelectedCoinName(coinName);
+    const result = await dispatch(fetchPortfolioPerformance(coinId));
+    if (fetchPortfolioPerformance.fulfilled.match(result)) {
+      setChartData(result.payload);
+    }
+  };
 
   return (
     <Box>
@@ -128,23 +147,29 @@ function PortfolioPage() {
         <Box flex={1}>
           <PortfolioSummary
             title="Total Portfolio Value"
-            value="$16,930.00"
-            change={1.85}
+            value={totalPortfolioValue.toLocaleString(undefined, {
+              style: 'currency',
+              currency: 'USD',
+            })}
+            change={portfolioChangePercent}
             isMainValue
           />
         </Box>
         <Box flex={1}>
           <PortfolioSummary
             title="24h Change"
-            value="$312.45"
-            change={1.85}
+            value={portfolioChangeValue.toLocaleString(undefined, {
+              style: 'currency',
+              currency: 'USD',
+            })}
+            change={portfolioChangePercent}
           />
         </Box>
         <Box flex={1}>
           <PortfolioSummary
             title="Best Performer"
-            value="BTC (+2.53%)"
-            change={2.53}
+            value={bestPerformer ? `${bestPerformer.symbol.toUpperCase()} (${bestPerformer.priceChange24h.toFixed(2)}%)` : '--'}
+            change={bestPerformer ? bestPerformer.priceChange24h : 0}
           />
         </Box>
       </Box>
@@ -160,24 +185,9 @@ function PortfolioPage() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Portfolio Performance
+                {selectedCoinName ? `${selectedCoinName} Performance (Last 7 Days)` : 'Portfolio Performance'}
               </Typography>
-              <PortfolioChart />
-            </CardContent>
-          </Card>
-        </Box>
-        <Box flex={1}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Asset Allocation
-              </Typography>
-              <Box height={300}>
-                {/* TODO: Add pie chart for asset allocation */}
-                <Typography color="text.secondary" align="center" sx={{ mt: 10 }}>
-                  Asset allocation chart will be added here
-                </Typography>
-              </Box>
+              <PortfolioChart chartData={chartData} selectedCoinName={selectedCoinName || undefined} />
             </CardContent>
           </Card>
         </Box>
@@ -194,7 +204,7 @@ function PortfolioPage() {
               variant="contained"
               startIcon={<AddIcon />}
               size="small"
-              onClick={() => handleAddCoin('new-coin', 1)} // TODO: Replace with actual coin data
+              onClick={handleOpenAddDialog}
             >
               Add Coin
             </Button>
@@ -213,7 +223,7 @@ function PortfolioPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Array.isArray(portfolio) && portfolio.length === 0 ? (
+                {portfolioArray.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} align="center">
                       <Typography color="text.secondary" py={2}>
@@ -222,8 +232,13 @@ function PortfolioPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  portfolioArray.map((holding: typeof initialPortfolioHoldings[0]) => (
-                    <TableRow key={holding.id} hover>
+                  portfolioArray.map((holding) => (
+                    <TableRow
+                      key={holding.id}
+                      hover
+                      onClick={() => handleRowClick(holding.id, holding.name)}
+                      sx={{ cursor: 'pointer' }}
+                    >
                       <TableCell>
                         <Box display="flex" alignItems="center" gap={1}>
                           <Avatar
@@ -312,6 +327,13 @@ function PortfolioPage() {
           </TableContainer>
         </CardContent>
       </Card>
+
+      {/* Add Coin Dialog */}
+      <AddCoinDialog
+        open={addDialogOpen}
+        onClose={handleCloseAddDialog}
+        onAddCoin={handleAddCoin}
+      />
     </Box>
   );
 }

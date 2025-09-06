@@ -2,19 +2,9 @@ import React from 'react';
 import { Card, CardContent, Typography, Box, Chip } from '@mui/material';
 import { TrendingUp, TrendingDown } from '@mui/icons-material';
 
-interface PortfolioSummaryProps {
-  title: string;
-  value: string;
-  change: number;
-  isMainValue?: boolean;
-}
+import { PortfolioSummaryProps } from '@/constants/interface';
 
-const PortfolioSummary: React.FC<PortfolioSummaryProps> = ({
-  title,
-  value,
-  change,
-  isMainValue = false,
-}) => {
+function PortfolioSummary({ title, value, change, isMainValue = false }: PortfolioSummaryProps) {
   const isPositive = change >= 0;
 
   return (

@@ -1,34 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-
-export interface Coin {
-  id: string;
-  name: string;
-  symbol: string;
-  image: string;
-  current_price: number;
-  price_change_percentage_24h: number;
-  market_cap: number;
-  market_cap_rank: number;
-}
-
-export interface CoinsState {
-  entities: { [id: string]: Coin };
-  ids: string[];
-  loading: boolean;
-  error: string | null;
-  searchTerm: string;
-  filters: {
-    limit: 10 | 50;
-    priceChange: 'all' | 'positive' | 'negative';
-  };
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    itemsPerPage: number;
-    totalItems: number;
-  };
-}
-
+import { createSelector } from '@reduxjs/toolkit';
+import { Coin, CoinsState } from '@/constants/interface';
 const initialState: CoinsState = {
   entities: {},
   ids: [],
@@ -152,8 +124,11 @@ export const {
 } = coinsSlice.actions;
 
 // Selectors
-export const selectAllCoins = (state: { coins: CoinsState }) => 
-  state.coins.ids.map(id => state.coins.entities[id]);
+export const selectAllCoins = createSelector(
+  (state: { coins: CoinsState }) => state.coins.entities,
+  (state: { coins: CoinsState }) => state.coins.ids,
+  (entities, ids) => ids.map((id) => entities[id])
+);
 
 export const selectFilteredCoins = (state: { coins: CoinsState }) => {
   const coins = selectAllCoins(state);

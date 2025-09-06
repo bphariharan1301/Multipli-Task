@@ -13,9 +13,9 @@ import {
   Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { Box, useTheme } from '@mui/material';
+import { Box, useTheme, Typography } from '@mui/material';
 
-// Register Chart.js components
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -27,29 +27,50 @@ ChartJS.register(
   Filler
 );
 
-function PortfolioChart() {
+import { PortfolioChartProps } from '@/constants/interface';
+
+function PortfolioChart({ chartData, selectedCoinName }: PortfolioChartProps) {
   const theme = useTheme();
 
-  // Mock historical portfolio data (7 days)
-  const mockData = {
-    labels: ['7d ago', '6d ago', '5d ago', '4d ago', '3d ago', '2d ago', 'Yesterday', 'Today'],
-    datasets: [
-      {
-        label: 'Portfolio Value',
-        data: [15800, 16200, 15950, 16400, 16100, 16850, 16618, 16930],
-        borderColor: theme.palette.primary.main,
-        backgroundColor: `${theme.palette.primary.main}20`,
-        borderWidth: 3,
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: theme.palette.primary.main,
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointRadius: 6,
-        pointHoverRadius: 8,
-      },
-    ],
+  // Prepare chart data based on API response only
+  const prepareChartData = () => {
+    if (chartData && chartData.prices && chartData.prices.length > 0) {
+      const prices = chartData.prices;
+
+      return {
+        labels: prices.map((price) => {
+          const date = new Date(price.x);
+          return date.toLocaleString('en-US', {
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+        }),
+        datasets: [
+          {
+            label: selectedCoinName ? `${selectedCoinName} Price (USD)` : 'Price (USD)',
+            data: prices.map(price => price.y),
+            borderColor: theme.palette.primary.main,
+            backgroundColor: `${theme.palette.primary.main}20`,
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: theme.palette.primary.main,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+          },
+        ],
+      };
+    }
+
+    // Return null if no data
+    return null;
   };
+
+  const data = prepareChartData();
 
   const options = {
     responsive: true,
@@ -70,7 +91,8 @@ function PortfolioChart() {
         displayColors: false,
         callbacks: {
           label: function (context: any) {
-            return `$${context.parsed.y.toLocaleString()}`;
+            const value = context.parsed.y;
+            return `$${value.toFixed(2)}`;
           },
         },
       },
@@ -91,6 +113,7 @@ function PortfolioChart() {
           font: {
             size: 12,
           },
+          maxRotation: 45,
         },
       },
       y: {
@@ -119,7 +142,15 @@ function PortfolioChart() {
 
   return (
     <Box height={300}>
-      <Line data={mockData} options={options} />
+      {data ? (
+        <Line data={data} options={options} />
+      ) : (
+        <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%">
+          <Typography color="text.secondary" align="center">
+            Click on a coin row to view its 7-day performance chart
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import {
   Box,
   TextField,
@@ -38,7 +38,7 @@ function SearchAndFilter() {
   const filters = useAppSelector(selectFilters);
   const coins = useAppSelector(selectAllCoins);
 
-  const { control, handleSubmit, setValue, watch } = useForm<FilterFormValues>({
+  const { control, handleSubmit, setValue } = useForm<FilterFormValues>({
     defaultValues: { search: searchTerm || '' }
   })
 

@@ -3,7 +3,7 @@ import * as React from "react";
 import { styled, useTheme, Theme, CSSObject } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import MuiDrawer from "@mui/material/Drawer";
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
+import MuiAppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import List from "@mui/material/List";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -17,14 +17,12 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import MailIcon from "@mui/icons-material/Mail";
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined';
-import SearchIcon from '@mui/icons-material/Search';
-import SettingsIcon from '@mui/icons-material/Settings';
 import CurrencyBitcoinIcon from '@mui/icons-material/CurrencyBitcoin';
 import { useRouter } from "next/navigation";
+
+import { AppBarProps } from "@/constants/interface";
 
 const drawerWidth = 240;
 
@@ -58,9 +56,7 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 	...theme.mixins.toolbar,
 }));
 
-interface AppBarProps extends MuiAppBarProps {
-	open?: boolean;
-}
+
 
 const AppBar = styled(MuiAppBar, {
 	shouldForwardProp: (prop) => prop !== "open",
@@ -122,7 +118,7 @@ function AppSideBar({
 	const menuItems = [
 		{
 			id: 1,
-			text: 'Market Overview',
+			text: 'Dashboard',
 			icon: <DashboardIcon />,
 			onClick: () => {
 				router.push('/dashboard');
@@ -134,14 +130,6 @@ function AppSideBar({
 			icon: <TrendingUpOutlinedIcon />,
 			onClick: () => {
 				router.push('/portfolio');
-			}
-		},
-		{
-			id: 3,
-			text: 'Settings',
-			icon: <SettingsIcon />,
-			onClick: () => {
-				router.push('/settings');
 			}
 		}
 	]

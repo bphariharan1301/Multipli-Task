@@ -13,10 +13,10 @@ function DashboardPage() {
 
 	// Fetch coins on component mount and set up auto-refresh
 	useEffect(() => {
-		// Fetch coins with pagination parameters
+		// Fetch coins with pagination parameters checked from API docs
 		dispatch(fetchCoins({ page: 1, perPage: 50 }));
 
-		// Set up auto-refresh every 30 minutes
+		// Set up auto-refresh every 30 minutes (API key limitations 10k/month with keeping @ refresh/30 secs will consume lot of requests)
 		const interval = setInterval(() => {
 			dispatch(fetchCoins({ page: 1, perPage: 50 }));
 		}, 1800000);
@@ -38,70 +38,11 @@ function DashboardPage() {
 		<Box>
 			<Box mb={3}>
 				<Typography variant="h4" gutterBottom>
-					Market Overview
+					Dashboard
 				</Typography>
 				<Typography variant="body1" color="text.secondary">
 					Track real-time cryptocurrency prices, market caps, and 24-hour changes
 				</Typography>
-			</Box>
-
-			{/* Market Stats Overview */}
-			<Box
-				display="flex"
-				flexDirection={{ xs: 'column', md: 'row' }}
-				gap={2}
-				mb={4}
-			>
-				<Card sx={{ flex: 1 }}>
-					<CardContent>
-						<Typography color="text.secondary" gutterBottom>
-							Total Market Cap
-						</Typography>
-						<Typography variant="h5" component="div">
-							{totalMarketCap > 0
-								? `$${(totalMarketCap / 1e12).toFixed(2)}T`
-								: '$1.2T'
-							}
-						</Typography>
-						<Typography
-							variant="body2"
-							color={avgChange24h >= 0 ? "success.main" : "error.main"}
-						>
-							{avgChange24h >= 0 ? '+' : ''}{avgChange24h.toFixed(2)}% (24h)
-						</Typography>
-					</CardContent>
-				</Card>
-
-				<Card sx={{ flex: 1 }}>
-					<CardContent>
-						<Typography color="text.secondary" gutterBottom>
-							24h Volume
-						</Typography>
-						<Typography variant="h5" component="div">
-							$89B
-						</Typography>
-						<Typography variant="body2" color="error.main">
-							-1.2% (24h)
-						</Typography>
-					</CardContent>
-				</Card>
-
-				<Card sx={{ flex: 1 }}>
-					<CardContent>
-						<Typography color="text.secondary" gutterBottom>
-							BTC Dominance
-						</Typography>
-						<Typography variant="h5" component="div">
-							{btcDominance > 0
-								? `${btcDominance.toFixed(1)}%`
-								: '52.3%'
-							}
-						</Typography>
-						<Typography variant="body2" color="text.secondary">
-							+0.8% (24h)
-						</Typography>
-					</CardContent>
-				</Card>
 			</Box>
 
 			{/* Search and Filter */}

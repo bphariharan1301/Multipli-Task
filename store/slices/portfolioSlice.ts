@@ -1,13 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 
-export interface PortfolioCoin {
-  id: string;
-  amount: number;
-}
-
-export interface PortfolioState {
-  coins: { [id: string]: PortfolioCoin };
-}
+import { PortfolioState, PortfolioCoin } from '@/constants/interface';
 
 const initialState: PortfolioState = {
   coins: {},
@@ -51,5 +44,34 @@ export const {
 
 export const selectPortfolio = (state: { portfolio: PortfolioState }) =>
   state.portfolio.coins;
+
+export const fetchPortfolioPerformance = createAsyncThunk(
+  'portfolio/fetchPortfolioPerformance',
+  async (coinId: string, { rejectWithValue }) => {
+    try {
+      const now = Math.floor(Date.now() / 1000);
+      const sevenDaysAgo = now - 7 * 24 * 60 * 60; // Last 7 days
+      const response = await fetch(
+        `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart/range?vs_currency=usd&from=${sevenDaysAgo}&to=${now}`
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch portfolio performance data');
+      }
+
+      const data = await response.json();
+      return {
+        prices: data.prices.map(([timestamp, price]: [number, number]) => ({
+          x: timestamp, // Use timestamp instead of Date object
+          y: price,
+        })),
+      };
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    }
+  }
+);
 
 export default portfolioSlice.reducer;
