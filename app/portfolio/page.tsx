@@ -124,7 +124,7 @@ function PortfolioPage() {
     setAlertMessage(null);
     setSelectedCoinName(coinName);
     try {
-      const result = await dispatch(fetchPortfolioPerformance(coinId)).then(() => {
+      dispatch(fetchPortfolioPerformance(coinId)).then((result: any) => {
         if (fetchPortfolioPerformance.fulfilled.match(result)) {
           setChartData(result.payload);
         }
