@@ -133,30 +133,30 @@ function DashboardTable() {
 			</TableContainer>
 
 			{/* Pagination Controls */}
-			{!loading && coins.length > 0 && pagination.totalPages > 1 && (
-				<Box display="flex" justifyContent="space-between" alignItems="center" mt={3} mb={2}>
-					{/* Items per page selector */}
-					<Box display="flex" alignItems="center" gap={1}>
-						<Typography variant="body2" color="text.secondary">
-							Items per page:
-						</Typography>
-						<Box display="flex" gap={1}>
-							{[5, 10, 25, 50, 100].map((size) => (
-								<Chip
-									key={size}
-									label={size}
-									size="small"
-									variant={pagination.itemsPerPage === size ? 'filled' : 'outlined'}
-									color={pagination.itemsPerPage === size ? 'primary' : 'default'}
-									onClick={() => handleItemsPerPageChange(size)}
-									clickable
-									sx={{ minWidth: '40px' }}
-								/>
-							))}
-						</Box>
+			<Box display="flex" justifyContent="space-between" alignItems="center" mt={3} mb={2}>
+				{/* Items per page selector */}
+				<Box display="flex" alignItems="center" gap={1}>
+					<Typography variant="body2" color="text.secondary">
+						Items per page:
+					</Typography>
+					<Box display="flex" gap={1}>
+						{[5, 10, 25, 50, 100].map((size) => (
+							<Chip
+								key={size}
+								label={size}
+								size="small"
+								variant={pagination.itemsPerPage === size ? 'filled' : 'outlined'}
+								color={pagination.itemsPerPage === size ? 'primary' : 'default'}
+								onClick={() => handleItemsPerPageChange(size)}
+								clickable
+								sx={{ minWidth: '40px' }}
+							/>
+						))}
 					</Box>
+				</Box>
 
-					{/* Pagination */}
+				{/* Pagination */}
+				{!loading && coins.length > 0 && pagination.totalPages > 1 && (
 					<Pagination
 						count={pagination.totalPages}
 						page={pagination.currentPage}
@@ -175,8 +175,8 @@ function DashboardTable() {
 							/>
 						)}
 					/>
-				</Box>
-			)}
+				)}
+			</Box>
 		</Box>
 	);
 }
