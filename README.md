@@ -1,4 +1,4 @@
-# Multipli Dashboard
+# Crypto Portfolio Dashboard
 
 ## Setup Instructions
 
