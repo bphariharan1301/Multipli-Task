@@ -16,6 +16,7 @@ import {
   Avatar,
   Chip,
   IconButton,
+  Alert,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon } from '@mui/icons-material';
 import PortfolioChart from './components/PortfolioChart';
@@ -37,6 +38,7 @@ function PortfolioPage() {
   const [addDialogOpen, setAddDialogOpen] = React.useState(false);
   const [selectedCoinName, setSelectedCoinName] = useState<string | null>(null);
   const [chartData, setChartData] = useState<{ prices: { x: Date; y: number }[] } | null>(null);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   const portfolio = useAppSelector(selectPortfolio);
   const coins = useAppSelector(selectAllCoins);
@@ -119,10 +121,17 @@ function PortfolioPage() {
 
   const handleRowClick = async (coinId: string, coinName: string) => {
     // setSelectedCoinId(coinId);
+    setAlertMessage(null);
     setSelectedCoinName(coinName);
-    const result = await dispatch(fetchPortfolioPerformance(coinId));
-    if (fetchPortfolioPerformance.fulfilled.match(result)) {
-      setChartData(result.payload);
+    try {
+      const result = await dispatch(fetchPortfolioPerformance(coinId)).then(() => {
+        if (fetchPortfolioPerformance.fulfilled.match(result)) {
+          setChartData(result.payload);
+        }
+      });
+    } catch (error) {
+      setAlertMessage('Failed to load chart data. Please try again later.');
+
     }
   };
 
@@ -182,6 +191,9 @@ function PortfolioPage() {
         mb={4}
       >
         <Box flex={2}>
+          {
+            alertMessage && <Alert severity='error' onClose={() => setAlertMessage(null)}>{alertMessage}</Alert>
+          }
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
