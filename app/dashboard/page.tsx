@@ -13,12 +13,13 @@ function DashboardPage() {
 
 	// Fetch coins on component mount and set up auto-refresh
 	useEffect(() => {
-		dispatch(fetchCoins());
+		// Fetch coins with pagination parameters
+		dispatch(fetchCoins({ page: 1, perPage: 50 }));
 
-		// Set up auto-refresh every 30 seconds
+		// Set up auto-refresh every 30 minutes
 		const interval = setInterval(() => {
-			dispatch(fetchCoins());
-		}, 30000);
+			dispatch(fetchCoins({ page: 1, perPage: 50 }));
+		}, 1800000);
 
 		return () => clearInterval(interval);
 	}, [dispatch]);

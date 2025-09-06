@@ -21,9 +21,16 @@ import {
 import { Add as AddIcon, Edit as EditIcon } from '@mui/icons-material';
 import PortfolioChart from './components/PortfolioChart';
 import PortfolioSummary from './components/PortfolioSummary';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  addCoinToPortfolio,
+  updateCoinAmount,
+  removeCoinFromPortfolio,
+  selectPortfolio,
+} from '@/store/slices/portfolioSlice';
 
 // Dummy placeholder data
-const portfolioHoldings = [
+const initialPortfolioHoldings = [
   {
     id: 'bitcoin',
     name: 'Bitcoin',
@@ -60,14 +67,25 @@ function PortfolioPage() {
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [editAmount, setEditAmount] = React.useState<string>('');
 
+  const portfolio = useAppSelector(selectPortfolio);
+  const dispatch = useAppDispatch();
+
+  React.useEffect(() => {
+    // TODO: Initialize portfolio with dummy data
+  }, []);
+
   const handleEditClick = (id: string, currentAmount: number) => {
     setEditingId(id);
     setEditAmount(currentAmount.toString());
   };
 
   const handleSaveEdit = () => {
-    // TODO: Dispatch Redux action to update portfolio
-    console.log(`Updating ${editingId} with amount: ${editAmount}`);
+    const amount = parseFloat(editAmount);
+    if (isNaN(amount) || amount <= 0) return;
+
+    // Update portfolio holding amount
+    dispatch(updateCoinAmount({ id: editingId!, amount }));
+
     setEditingId(null);
     setEditAmount('');
   };
@@ -76,6 +94,18 @@ function PortfolioPage() {
     setEditingId(null);
     setEditAmount('');
   };
+
+  const handleAddCoin = (id: string, amount: number) => {
+    dispatch(addCoinToPortfolio({ id, amount }));
+  };
+
+  const handleRemoveCoin = (id: string) => {
+    dispatch(removeCoinFromPortfolio(id));
+  };
+
+
+  const portfolioArray = Object.values(portfolio) as typeof initialPortfolioHoldings;
+  console.log('portfolioArray', portfolioArray);
 
   return (
     <Box>
@@ -164,6 +194,7 @@ function PortfolioPage() {
               variant="contained"
               startIcon={<AddIcon />}
               size="small"
+              onClick={() => handleAddCoin('new-coin', 1)} // TODO: Replace with actual coin data
             >
               Add Coin
             </Button>
@@ -182,90 +213,100 @@ function PortfolioPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {portfolioHoldings.map((holding) => (
-                  <TableRow key={holding.id} hover>
-                    <TableCell>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Avatar
-                          src={holding.image}
-                          alt={holding.name}
-                          sx={{ width: 32, height: 32 }}
-                        >
-                          {holding.symbol.slice(0, 2)}
-                        </Avatar>
-                        <Box>
-                          <Typography variant="subtitle2">{holding.name}</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {holding.symbol.toUpperCase()}
+                {Array.isArray(portfolio) && portfolio.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      <Typography color="text.secondary" py={2}>
+                        No holdings found. Add some coins to get started!
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  portfolioArray.map((holding: typeof initialPortfolioHoldings[0]) => (
+                    <TableRow key={holding.id} hover>
+                      <TableCell>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Avatar
+                            src={holding.image}
+                            alt={holding.name}
+                            sx={{ width: 32, height: 32 }}
+                          >
+                            {holding.symbol.slice(0, 2)}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="subtitle2">{holding.name}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {holding.symbol.toUpperCase()}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell align="right">
+                        {editingId === holding.id ? (
+                          <Box display="flex" gap={1} alignItems="center">
+                            <TextField
+                              size="small"
+                              value={editAmount}
+                              onChange={(e) => setEditAmount(e.target.value)}
+                              type="number"
+                              sx={{ width: 100 }}
+                            />
+                            <Button size="small" onClick={handleSaveEdit}>
+                              Save
+                            </Button>
+                            <Button size="small" onClick={handleCancelEdit}>
+                              Cancel
+                            </Button>
+                          </Box>
+                        ) : (
+                          <Typography>
+                            {holding.amount.toLocaleString(undefined, {
+                              maximumFractionDigits: 8,
+                            })}
                           </Typography>
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell align="right">
-                      {editingId === holding.id ? (
-                        <Box display="flex" gap={1} alignItems="center">
-                          <TextField
-                            size="small"
-                            value={editAmount}
-                            onChange={(e) => setEditAmount(e.target.value)}
-                            type="number"
-                            sx={{ width: 100 }}
-                          />
-                          <Button size="small" onClick={handleSaveEdit}>
-                            Save
-                          </Button>
-                          <Button size="small" onClick={handleCancelEdit}>
-                            Cancel
-                          </Button>
-                        </Box>
-                      ) : (
-                        <Typography>
-                          {holding.amount.toLocaleString(undefined, {
-                            maximumFractionDigits: 8,
-                          })}
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell align="right">
-                      {holding.currentPrice.toLocaleString(undefined, {
-                        style: 'currency',
-                        currency: 'USD',
-                      })}
-                    </TableCell>
-                    <TableCell align="right">
-                      <Chip
-                        label={`${holding.priceChange24h.toFixed(2)}%`}
-                        size="small"
-                        sx={{
-                          bgcolor: holding.priceChange24h >= 0
-                            ? 'rgba(16,185,129,0.12)'
-                            : 'rgba(239,68,68,0.12)',
-                          color: holding.priceChange24h >= 0
-                            ? 'success.main'
-                            : 'error.main',
-                          fontWeight: 600,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography fontWeight="medium">
-                        {holding.totalValue.toLocaleString(undefined, {
+                        )}
+                      </TableCell>
+                      <TableCell align="right">
+                        {holding.currentPrice.toLocaleString(undefined, {
                           style: 'currency',
                           currency: 'USD',
                         })}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleEditClick(holding.id, holding.amount)}
-                        disabled={editingId !== null}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell align="right">
+                        <Chip
+                          label={`${holding.priceChange24h.toFixed(2)}%`}
+                          size="small"
+                          sx={{
+                            bgcolor: holding.priceChange24h >= 0
+                              ? 'rgba(16,185,129,0.12)'
+                              : 'rgba(239,68,68,0.12)',
+                            color: holding.priceChange24h >= 0
+                              ? 'success.main'
+                              : 'error.main',
+                            fontWeight: 600,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography fontWeight="medium">
+                          {holding.totalValue.toLocaleString(undefined, {
+                            style: 'currency',
+                            currency: 'USD',
+                          })}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleEditClick(holding.id, holding.amount)}
+                          disabled={editingId !== null}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </TableContainer>

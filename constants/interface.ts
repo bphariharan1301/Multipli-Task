@@ -9,3 +9,7 @@ export type Coin = {
   price_change_percentage_24h: number;
   market_cap: number;
 };
+
+export type FilterFormValues = {
+  search: string;
+}
