@@ -11,29 +11,29 @@ const mockData = [
 		child: [
 			{
 				id: '1.1',
-				name: 'child-1',
+				name: 'child-1.1',
 				type: 'file'
 			},
 			{
 				id: '1.2',
-				name: 'child-2',
+				name: 'child-1.2',
 				type: 'folder',
 				child: [
 					{
 						id: '1.2.1',
-						name: 'child-2-1',
+						name: 'child-1.2.1',
 						type: 'file'
 					},
 					{
 						id: '1.2.2',
-						name: 'child-2-2',
+						name: 'child-1.2.2',
 						type: 'file'
 					},
 				]
 			},
 			{
 				id: '1.3',
-				name: 'temp',
+				name: 'child-1.3',
 				type: 'file'
 			},
 		]
@@ -45,29 +45,29 @@ const mockData = [
 		child: [
 			{
 				id: '2.1',
-				name: 'temp',
+				name: 'child-2.1',
 				type: 'file'
 			},
 			{
 				id: '2.2',
-				name: 'child-2',
+				name: 'child-2.2',
 				type: 'folder',
 				child: [
 					{
 						id: '2.2.1',
-						name: 'temp',
+						name: 'child-2.2.1',
 						type: 'file'
 					},
 					{
 						id: '2.2.2',
-						name: 'child-2',
+						name: 'child-2.2.2',
 						type: 'file'
 					},
 				]
 			},
 			{
 				id: '2.3',
-				name: 'temp',
+				name: 'child-2.3',
 				type: 'file'
 			},
 		]
@@ -119,7 +119,6 @@ function FolderComponent(props: any) {
 								)
 							}
 						</div>
-						{'-----------------------------------------------'}
 					</>
 				) : (
 					<>
@@ -129,6 +128,8 @@ function FolderComponent(props: any) {
 					</>
 				)
 			}
+			{/* {'-----------------------------------------------'} */}
+			<br />
 		</>
 	)
 }
