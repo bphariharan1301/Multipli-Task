@@ -135,19 +135,19 @@ function FolderComponent(props: any) {
 }
 
 export default function Home() {
-	// redirect("/dashboard");
+	redirect("/dashboard");
 
-	return (
-		<div>
-			{
-				mockData.map((data, index) => (
-					<div key={index}>
-						<FolderComponent data={data} />
-					</div>
-				))
-			}
-		</div>
-	)
+	// return (
+	// 	<div>
+	// 		{
+	// 			mockData.map((data, index) => (
+	// 				<div key={index}>
+	// 					<FolderComponent data={data} />
+	// 				</div>
+	// 			))
+	// 		}
+	// 	</div>
+	// )
 
 
 
