@@ -49,10 +49,8 @@ export const fetchPortfolioPerformance = createAsyncThunk(
   'portfolio/fetchPortfolioPerformance',
   async (coinId: string, { rejectWithValue }) => {
     try {
-      const now = Math.floor(Date.now() / 1000);
-      const sevenDaysAgo = now - 7 * 24 * 60 * 60; // Last 7 days
       const response = await fetch(
-        `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart/range?vs_currency=usd&from=${sevenDaysAgo}&to=${now}`
+        `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=6`
       );
 
       if (!response.ok) {
@@ -61,10 +59,12 @@ export const fetchPortfolioPerformance = createAsyncThunk(
 
       const data = await response.json();
       return {
-        prices: data.prices.map(([timestamp, price]: [number, number]) => ({
-          x: timestamp, // Use timestamp instead of Date object
-          y: price,
-        })),
+        prices: Array.isArray(data.prices)
+          ? data.prices.map(([timestamp, price]: [number, number]) => ({
+              x: timestamp,
+              y: price,
+            }))
+          : [],
       };
     } catch (error) {
       return rejectWithValue(

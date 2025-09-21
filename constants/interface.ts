@@ -66,7 +66,9 @@ export interface PortfolioSummaryProps {
 }
 
 export interface PortfolioChartProps {
-  chartData?: { prices: { x: Date; y: number }[] } | null;
+  chartData?: { 
+    prices: ([number, number] | { x: Date | number; y: number })[]
+  } | null;
   selectedCoinName?: string;
 }
 
